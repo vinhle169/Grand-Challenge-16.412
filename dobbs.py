@@ -11,7 +11,7 @@ class Dobbs:
     def __init__(self, game):
         # init the game as an MILP
         self.prob = plp.LpProblem(name="DOBBS", sense=plp.LpMaximize)
-
+        self.game = game
         # get payoffs and adversary probability distribution
         self.C = game.attacker_payoffs
         self.R = game.defender_payoffs
@@ -120,13 +120,17 @@ if __name__ == "__main__":
     # for testing
 
     from games import PatrolGame
-    x = PatrolGame(5, 4, 3)
+    x = PatrolGame(4, 4, 2, items=["TV", "Computer", "Vase", "Watch"], item_prob=[.7, .6, .3, .4],
+                   attacker_types=['greedy', 'silly'], attacker_type_prob=[.7, .3])
     print(x)
-    # p = Dobbs(x)
-    # print("dobbs initialized")
-    # p.solve()
-    #
-    # print(p.opt_defender_mixed_strategy)
+    p = Dobbs(x)
+    print("dobbs initialized")
+    p.solve()
+    print(p.solution_time_with_overhead)
+    print(p.opt_attacker_pure_strategy)
+    print(p.opt_defender_mixed_strategy)
+    strat = np.argmax(p.opt_defender_mixed_strategy)
+    print(p.game.X[strat])
     # print(p.opt_defender_payoff)
     #
     # f = np.vectorize(plp.value)

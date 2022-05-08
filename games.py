@@ -12,13 +12,14 @@ class PatrolGame:
     d: length of patrol
     num_attacker_types: number of attacker types
     items: list of items(strings)
+    item_prob: list of probabilities robber is caught per item
     self.items: dictionary mapping index of item to its name
     v_x[l,m]: security agent's valuation of target m when facing adversary l
     v_q[l,m]: Adversary's valuation of target m when of type l
     c_x[l]: security agent's reward for catching adversary of type l
     c_q[l]: Adversaries cost of getting caught when of type l
     """
-    def __init__(self, m, d, num_attacker_types, items=None):
+    def __init__(self, m, d, num_attacker_types, items=None, item_prob=None, attacker_types=None, attacker_type_prob=None):
         # save args as instance variables
         self.m = m
         if items:
@@ -55,7 +56,6 @@ class PatrolGame:
             self.X = list(itertools.chain(*_X))
         # - generate pure attacker strategies
         self.Q = np.arange(m)
-        print(self.Q)
         #   save num of strategies
         self.num_defender_strategies = len(self.X)
         self.num_attacker_strategies = len(self.Q)
@@ -63,9 +63,12 @@ class PatrolGame:
         # along the d-path
         # assuming linearity
         ## wtf is this
-        self.Pl = np.zeros(d)
-        for index in range(len(self.Pl)):
-            self.Pl[index] = 1 - (float((index+1)) / (d+1))
+        if not item_prob:
+            self.Pl = np.zeros(d)
+            for index in range(len(self.Pl)):
+                self.Pl[index] = 1 - (float((index+1)) / (d+1))
+        else:
+            self.Pl = np.array(item_prob)
         # - generate payoff matrices
         self.attacker_payoffs = np.ndarray(shape=(self.num_defender_strategies,
                                                  self.num_attacker_strategies,
@@ -109,11 +112,19 @@ class PatrolGame:
 
         # generate probability distribution over adversaries
         # assume uniform distribution.
-        self.attacker_type_probability = np.zeros(self.num_attacker_types)
-        self.attacker_type_probability[:] = 1.0 / self.num_attacker_types
-
+        if not attacker_type_prob:
+            self.attacker_type_probability = np.zeros(self.num_attacker_types)
+            self.attacker_type_probability[:] = 1.0 / self.num_attacker_types
+        else:
+            # check if probabilities are normalized
+            if sum(attacker_type_prob) != 1:
+                attacker_type_prob /= sum(attacker_type_prob)
+            self.attacker_type_probability = np.array(attacker_type_prob)
         self.type = "normal"
-
+        if attacker_types:
+            self.attacker_types = attacker_types
+        else:
+            self.attacker_types = [i for i in range(num_attacker_types)]
 class NormalFormGame:
     def __init__(self, **kwargs):
         """
@@ -300,5 +311,5 @@ class NormalFormGame:
 
 if __name__ == '__main__':
     # 4 valuables, 4 patrol length, 2 attacker classes
-    x = PatrolGame(4, 4, 2)
+    x = PatrolGame(4, 4, 2, items=['watch', 'tv', 'laptop', 'fridge'])
     print('done making game')
