@@ -8,25 +8,40 @@ class PatrolGame:
     Games" Paruchi et al.
     The PatrolGame is a bayesian normal-form stackelberg game and holds the
     following values:
-    m: number of houses
+    m: number of "valuables" the targets
     d: length of patrol
     num_attacker_types: number of attacker types
-    v_x[l,m]: security agent's valulation of house m when facing adversary l
-    v_q[l,m]: Adversary's valuation of house m when of type l
+    items: list of items(strings)
+    self.items: dictionary mapping index of item to its name
+    v_x[l,m]: security agent's valuation of target m when facing adversary l
+    v_q[l,m]: Adversary's valuation of target m when of type l
     c_x[l]: security agent's reward for catching adversary of type l
     c_q[l]: Adversaries cost of getting caught when of type l
     """
-    def __init__(self, m, d, num_attacker_types):
+    def __init__(self, m, d, num_attacker_types, items=None):
         # save args as instance variables
         self.m = m
+        if items:
+            if len(items) != m:
+                raise "Number of items does not equal number of 'named' items"
+            else:
+                self.items = {idx:item for idx, item in enumerate(items)}
+
         self.d = d
         self.num_attacker_types = num_attacker_types
+
         # generate random valuations
+        # generate valuations for when target m faces adversary l
         self.v_x = np.random.rand(num_attacker_types, m)
+        # generate valuations for adversary, for target m when of type l
         self.v_q = np.random.rand(num_attacker_types, m)
+
         # and costs
+        # security agent's reward for catching adversary of type l
         self.c_x = np.random.rand(num_attacker_types)
+        # adversaries cost of getting caught when of type l
         self.c_q = np.random.rand(num_attacker_types)
+
         # - generate pure defender strategies
         # targets are indexed 0 to m-1
         targets = np.arange(m)
@@ -38,17 +53,16 @@ class PatrolGame:
             combs = itertools.combinations(targets, d)
             _X = map(lambda x: list(itertools.permutations(x)), list(combs))
             self.X = list(itertools.chain(*_X))
-
         # - generate pure attacker strategies
         self.Q = np.arange(m)
-
-        # save num of strategies
+        print(self.Q)
+        #   save num of strategies
         self.num_defender_strategies = len(self.X)
         self.num_attacker_strategies = len(self.Q)
-
-        # - generate Pl probabilitis that robber is caught for each house
+        # - generate Pl probabilities that robber is caught for each target
         # along the d-path
         # assuming linearity
+        ## wtf is this
         self.Pl = np.zeros(d)
         for index in range(len(self.Pl)):
             self.Pl[index] = 1 - (float((index+1)) / (d+1))
@@ -283,79 +297,8 @@ class NormalFormGame:
                 self.game.attacker_type_probability[t] / self.prob_typespace
 
 
-# TODO enable SecurityGame to deal with partial games
-class SecurityGame:
-    """
-    A security game is a non-bayesian game in which the payoffs for targets
-    are given by their coverage status.
-    Covered targets yield higher utilities for the defender, and lower
-    utilities for the attacker, whilst uncovered targets yield negative
-    utilities for the defender and positive utilities for the attacker.
-    """
-    def __init__(self, **kwargs):
-        if "partial_game_from" in kwargs.keys():
-            self.game = kwargs['partial_game_from']
-            self.attacker_types = kwargs['attacker_types']
-            self._create_partial_game()
-        else:
-            self.num_targets = kwargs['num_targets']
-            self.max_coverage = kwargs['max_coverage']
-            self.num_attacker_types = kwargs['num_attacker_types']
 
-            # for comparisons with other algos
-            self.num_attacker_strategies = self.num_targets
-
-            # uniform distribution over attacker types
-            self.attacker_type_probability = np.zeros((self.num_attacker_types))
-            self.attacker_type_probability += (1.0 / self.num_attacker_types)
-
-            # generate two arrays of random floats for defender and attacker
-            attacker_random = np.random.rand(2,
-                                             self.num_targets,
-                                             self.num_attacker_types)
-            defender_randoms = np.random.rand(2,
-                                              self.num_targets,
-                                              self.num_attacker_types)
-
-            # for attacker uncovered targets yield positive utilities, and covered
-            # yields negative utilities.
-            self.attacker_uncovered = attacker_random[0,:,:] * 100
-            self.attacker_covered = attacker_random[1,:,:] * -100
-
-            # for defender uncovered targets yield negative utilities, and covered
-            # targets yield positive utilities.
-            self.defender_uncovered = defender_randoms[0,:,:] * -100
-            self.defender_covered = defender_randoms[1,:,:] * 100
-
-        # store the type of this representation
-        self.type = "compact"
-
-    def _create_partial_game(self):
-        """
-        Make a partial game out of game and attacker_types.
-        """
-        # get payoffs
-        self.defender_uncovered = self.game.defender_uncovered[:,
-                                                    list(self.attacker_types)]
-        self.defender_covered = self.game.defender_covered[:,
-                                                    list(self.attacker_types)]
-        self.attacker_uncovered = self.game.attacker_uncovered[:,
-                                                    list(self.attacker_types)]
-        self.attacker_covered = self.game.attacker_covered[:,
-                                                    list(self.attacker_types)]
-        # get compact values
-        self.max_coverage = self.game.max_coverage
-        self.num_targets = self.game.num_targets
-        self.num_attacker_strategies = self.game.num_attacker_strategies
-
-        self.num_attacker_types = len(self.attacker_types)
-        self.attacker_type_probability = np.zeros((self.num_attacker_types))
-
-        # normalize attacker type probabilities
-        # Save the the probability of this typespace
-        self.prob_typespace = float(
-            self.game.attacker_type_probability[list(self.attacker_types)].sum())
-
-        for i, t in enumerate(self.attacker_types):
-            self.attacker_type_probability[i] = \
-                self.game.attacker_type_probability[t] / self.prob_typespace
+if __name__ == '__main__':
+    # 4 valuables, 4 patrol length, 2 attacker classes
+    x = PatrolGame(4, 4, 2)
+    print('done making game')

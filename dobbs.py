@@ -120,14 +120,14 @@ if __name__ == "__main__":
     # for testing
 
     from games import PatrolGame
-    x = PatrolGame(5, 2, 3)
-    p = Dobbs(x)
-    print("dobbs initialized")
-    p.solve()
+    x = PatrolGame(5, 4, 3)
+    print(x)
+    # p = Dobbs(x)
+    # print("dobbs initialized")
+    # p.solve()
+    #
+    # print(p.opt_defender_mixed_strategy)
+    # print(p.opt_defender_payoff)
+    #
+    # f = np.vectorize(plp.value)
 
-    print(p.opt_defender_mixed_strategy)
-    print(p.opt_defender_payoff)
-
-    f = np.vectorize(plp.value)
-    print(p.opt_x)
-    print(p.opt_x.sum())
