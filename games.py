@@ -62,7 +62,6 @@ class PatrolGame:
         # - generate Pl probabilities that robber is caught for each target
         # along the d-path
         # assuming linearity
-        ## wtf is this
         if not item_prob:
             self.Pl = np.zeros(d)
             for index in range(len(self.Pl)):
@@ -118,6 +117,7 @@ class PatrolGame:
         else:
             # check if probabilities are normalized
             if sum(attacker_type_prob) != 1:
+                attacker_type_prob = np.array(attacker_type_prob)
                 attacker_type_prob /= sum(attacker_type_prob)
             self.attacker_type_probability = np.array(attacker_type_prob)
         self.type = "normal"
