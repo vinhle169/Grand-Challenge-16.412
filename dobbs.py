@@ -3,6 +3,7 @@ import pulp as plp
 import numpy as np
 import time
 
+
 class Dobbs:
     """
     Init dobbs will internally store an MILP representation

@@ -6,11 +6,10 @@ from games import PatrolGame
 
 
 def play_game(m, d, num_attacker_types, items=None, item_prob=None,
-              attacker_types=None, attacker_type_prob=None, actual_attacker=None):
+              attacker_types=None, attacker_type_prob=None, actual_attacker=0):
     count = d
     lost_items = []
-    if not actual_attacker or actual_attacker >= len(attacker_types):
-        actual_attacker = np.random.randint(0, len(attacker_types))
+
     while d > 0:
         game = PatrolGame(m, d, num_attacker_types, items=items, item_prob=item_prob,
                           attacker_types=attacker_types, attacker_type_prob=attacker_type_prob)
@@ -32,15 +31,13 @@ def play_game(m, d, num_attacker_types, items=None, item_prob=None,
 
 
 def patrol_game_visualized(m, d, num_attacker_types, items=None, item_prob=None,
-                           attacker_types=None, attacker_type_prob=None, actual_attacker=None):
+                           attacker_types=None, attacker_type_prob=None, actual_attacker=0):
     count = d
     lost_items = []
-    if not actual_attacker or actual_attacker >= len(attacker_types):
-        actual_attacker = np.random.randint(0, len(attacker_types))
     while d > 0:
         game = PatrolGame(m, d, num_attacker_types, items=items, item_prob=item_prob,
                           attacker_types=attacker_types, attacker_type_prob=attacker_type_prob)
-        print('~~' * 20)
+        print('~~' * 30)
         print(f"Beginning Run {count - d}")
         dob = dobbs.Dobbs(game)
         dob.solve()
@@ -53,17 +50,17 @@ def patrol_game_visualized(m, d, num_attacker_types, items=None, item_prob=None,
         temp1[defender_move] = 'def'
         temp2 = [None] * len(dob.game.items)
         temp2[attacker_move] = 'atk'
-        temp = np.stack([temp1, temp2])
-        df = pd.DataFrame(temp, columns=temp0)
-        print('--'*20)
+        df = pd.DataFrame(np.stack([temp1, temp2]), columns=temp0)
+        print('--'*30)
         print(f'Policy decided on: {[dob.game.items[i] for i in dob.game.X[np.argmax(dob.opt_defender_mixed_strategy)]]}')
         print(df)
-        print('--' * 20)
+        print('--' * 30)
         if attacker_move != defender_move:
             print('Defender Failed, recalculating new strategy')
             lost_items.append(dob.game.items[attacker_move])
             m -= 1
             items.pop(attacker_move)
+            if len(items) == 0: break
             item_prob.pop(attacker_move)
         else:
             print('Defender Succeeded')
@@ -79,15 +76,20 @@ def patrol_game_visualized(m, d, num_attacker_types, items=None, item_prob=None,
 if __name__ == '__main__':
     i = 0
     score = []
-    while i <= 30:
+    start = time.time()
+    while i <= 20:
         try:
-            lost, success = play_game(3, 3, 4, items=["Safe", "Camera", "Computer"], item_prob=[.7, .3, .6],
-                                    attacker_types=['greedy', 'silly', 'c', 'b'], attacker_type_prob=[.6, .1, .2, .1], actual_attacker=0)
+            lost, success = play_game(4, 4, 3, items=["Safe", "Camera", "Computer","Phone"], item_prob=[.7, .3, .6, .1],
+                                    attacker_types=['greedy', 'silly','smart','safe'], attacker_type_prob=[.6, .2, .1, .1], actual_attacker=0)
         except:
-            lost, success = play_game(3, 3, 4, items=["Safe", "Camera", "Computer"], item_prob=[.7, .3, .6],
-                                   attacker_types=['greedy', 'silly', 'c', 'b'], attacker_type_prob=[.6, .1, .2, .1], actual_attacker=0)
+            lost, success = play_game(4, 4, 3, items=["Safe", "Camera", "Computer","Phone"], item_prob=[.7, .3, .6, .1],
+                                   attacker_types=['greedy', 'silly','smart','safe'], attacker_type_prob=[.6, .2, .1, .1], actual_attacker=0)
+        print(f'finished run {i}')
         score.append(success)
         i+=1
+    print('time: ', time.time() - start)
     print(score)
     tot = sum(score)
     print(tot/len(score))
+    # lost, success = patrol_game_visualized(4, 4, 2, items=["Safe", "Camera", "Computer", "Phone"], item_prob=[.7, .3, .6, .3],
+    #                                 attacker_types=['greedy', 'silly', 'c'], attacker_type_prob=[.6, .1, .3], actual_attacker=0)

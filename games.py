@@ -1,6 +1,7 @@
 import itertools
 import numpy as np
 
+
 class PatrolGame:
     """
     Class implementing the patrol game as specified
@@ -19,7 +20,8 @@ class PatrolGame:
     c_x[l]: security agent's reward for catching adversary of type l
     c_q[l]: Adversaries cost of getting caught when of type l
     """
-    def __init__(self, m, d, num_attacker_types, items=None, item_prob=None, attacker_types=None, attacker_type_prob=None):
+    def __init__(self, m, d, num_attacker_types, items=None, item_prob=None,
+                 attacker_types=None, attacker_type_prob=None):
         # save args as instance variables
         self.m = m
         if items:
